@@ -1,36 +1,73 @@
-# Backend Book Finder
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+</p>
 
-This is the backend code of Book Finder, a web application with which users can search and find books of a subject, genre, author, etc., they're interested in. 
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## Table of Contents
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-- [Overview](#overview)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
-- [Database Schema](#database-schema)
-- [Deployment Guide](#deployment-guide)
-- [Contributing](#contributing)
+## Description
 
-## Overview
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-I worked on this project to gain experience in the development of a full-stack application. Especially focusing on the backend with Go. The database I'm using is PostgreSQL.  
+## Installation
 
-## Getting Started
+```bash
+$ npm install
+```
 
-Explain how to set up a development environment for the backend project, install dependencies, and run the project locally.
+## Running the app
 
-## API Documentation
+```bash
+# development
+$ npm run start
 
-Document the backend APIs, endpoints, and routes. Provide details about request and response formats, authentication requirements, and error handling.
+# watch mode
+$ npm run start:dev
 
-## Database Schema
+# production mode
+$ npm run start:prod
+```
 
-Document the database schema used by the backend, including tables, fields, and relationships.
+## Test
 
-## Deployment Guide
+```bash
+# unit tests
+$ npm run test
 
-Include a deployment guide with instructions on how to deploy the backend project to production or other environments. Explain any specific configurations or considerations for deploying the backend code.
+# e2e tests
+$ npm run test:e2e
 
-## Contributing
+# test coverage
+$ npm run test:cov
+```
 
-Encourage contributions from the community by providing guidelines for reporting bugs, submitting feature requests, and contributing code or documentation changes.
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](LICENSE).
