@@ -116,7 +116,7 @@ model BookListStatus {
   statusId  String
   createdAt DateTime @default(now())
 
-  @@id([bookId, listId, statusId])
+  @@id([bookId, listId])
 }
 
 model Publisher {
