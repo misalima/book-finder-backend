@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  username           String               @unique
+  password           String
+  profile_visibility Int                  @default(0)
+  follower           Users_Users[]        @relation("Followers")
+  followed_user      Users_Users[]        @relation("Following")
+  notifications      Notification[]
+  passwordreset      PasswordResetToken[]
+  lists              List[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  reviews            Review[]
+}
+
+model Users_Users {
+  follower      User     @relation("Followers", fields: [followerId], references: [id])
+  followerId    String
+  followed_user User     @relation("Following", fields: [followedId], references: [id])
+  followedId    String
+  createdAt     DateTime @default(now())
+
+  @@id([followerId, followedId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  token     String
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String
+  message   String
+  is_read   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model List {
+  id         String           @id @default(uuid())
+  user       User             @relation(fields: [userId], references: [id])
+  userId     String
+  name       String           @default("My List")
+  type       Int              @default(0)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  bookslists BookListStatus[]
+}
+
+model Status {
+  id        String           @id @default(uuid())
+  name      String
+  type      String
+  booklists BookListStatus[]
+}
+
+model Book {
+  id             String           @id @default(uuid())
+  isbn           String
+  title          String
+  subtitle       String
+  summary        String
+  cover_image    String
+  published_date DateTime
+  avarage_rating Float            @default(0)
+  authors        Author[]         @relation("AuthorBooks")
+  genres         Genre[]          @relation("GenreBooks")
+  booklists      BookListStatus[]
+  publisher      Publisher        @relation(references: [id], fields: [publisherId])
+  publisherId    String
+  page_count     Int
+  preview_link   String
+  info_link      String
+  reviews        Review[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Author {
+  id        String   @id @default(uuid())
+  name      String
+  surname   String
+  books     Book[]   @relation("AuthorBooks")
+  createdAt DateTime @default(now())
+}
+
+model Genre {
+  id        String   @id @default(uuid())
+  name      String
+  books     Book[]   @relation("GenreBooks")
+  createdAt DateTime @default(now())
+}
+
+model BookListStatus {
+  book      Book     @relation(fields: [bookId], references: [id])
+  bookId    String
+  list      List     @relation(fields: [listId], references: [id])
+  listId    String
+  status    Status   @relation(fields: [statusId], references: [id])
+  statusId  String
+  createdAt DateTime @default(now())
+
+  @@id([bookId, listId])
+}
+
+model Publisher {
+  id        String   @id @default(uuid())
+  name      String
+  books     Book[]
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  book      Book     @relation(fields: [bookId], references: [id])
+  bookId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, bookId])
+}
