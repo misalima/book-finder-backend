@@ -12,7 +12,7 @@ export class UserController{
     return this.userService.getAllUsers();
   }
 
-  @Get(":username")
+  @Get("username/:username")
   async getUserByUsername(@Param('username') username: string){
     return this.userService.getUserByUsername(username);
   }
