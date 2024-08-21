@@ -54,6 +54,18 @@ export class UserService {
   }
 
   async getUserByUsername(username: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { username }
+    });
+
+    if (user) {
+      return user;
+    } else {
+      throw new ExistsUserException('User not found');
+    }
+  }
+
+  async searchUsersByUsername(username: string) {
     return this.prismaService.user.findMany({
       where: {
         username:{
