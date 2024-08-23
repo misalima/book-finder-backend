@@ -6,34 +6,33 @@ import { PrismaService } from "../../prisma.service";
 import { ValidateUserException } from "./exception/validateUser.exception";
 import { ExistsUserException } from "./exception/existsUser.exception";
 
-
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async validateUser(data: CreateUserDto | UpdateUserDto) {
-    const existingUsername = await this.prismaService.user.findUnique({
-      where: { username: data.username }
-    });
+    if (data.username) {
+      const existingUsername = await this.prismaService.user.findUnique({
+        where: { username: data.username }
+      });
 
-    if (existingUsername) {
-      throw new ValidateUserException('Username already exists');
-    }
-
-    const existingEmail = await this.prismaService.user.findUnique({
-      where: { email: data.email }
-    });
-
-    if (existingEmail) {
-      throw new ValidateUserException('Email already exists');
-    }
-
-    if (data.password){
-      if (data.password.length < 8) {
-        throw new ValidateUserException('Password must be at least 8 characters');
-      }else{
-        data.password = await bcrypt.hash(data.password, 10);
+      if (existingUsername) {
+        throw new ValidateUserException('Username already exists');
       }
+    }
+
+    if (data.email) {
+      const existingEmail = await this.prismaService.user.findUnique({
+        where: { email: data.email }
+      });
+
+      if (existingEmail) {
+        throw new ValidateUserException('Email already exists');
+      }
+    }
+
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
     }
   }
 
@@ -93,7 +92,7 @@ export class UserService {
   async deleteUser(id: string) {
     await this.getUserById(id);
     return this.prismaService.user.delete({
-      where: {id}
+      where: { id }
     });
   }
 }
