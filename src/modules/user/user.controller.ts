@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { UpdateUserDto } from "./dto/updateUser.dto";
@@ -10,21 +10,10 @@ export class UserController{
   constructor(private readonly userService: UserService){}
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  async getAllUser(){
-    return this.userService.getAllUsers();
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get(":id")
-  async getUserById(@Param('id') id: string){
-    return this.userService.getUserById(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get("username/:username")
-  async getUserByUsername(@Param('username') username: string){
-    return this.userService.getUserByUsername(username);
+  async getUserById(@Param('id') id: string , @Req() req: Request){
+    const requestedUserId = req.user['userId'];
+    return this.userService.getUserById(id, requestedUserId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -41,24 +30,14 @@ export class UserController{
   @UseGuards(JwtAuthGuard)
   @Put(":id")
   async updateUser(@Param('id') id: string, @Body() data: UpdateUserDto, @Req() req: Request){
-    const user = req.user['userId'];
-
-    if (user !== id) {
-      throw new UnauthorizedException('You are not authorized to perform this action');
-    }
-
-    return this.userService.updateUser(id, data);
+    const requestedUserId = req.user['userId'];
+    return this.userService.updateUser(id, requestedUserId, data);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(":id")
   async deleteUser(@Param('id') id: string, @Req() req: Request){
-    const user = req.user['userId'];
-
-    if (user !== id) {
-      throw new UnauthorizedException('You are not authorized to perform this action');
-    }
-
-    return this.userService.deleteUser(id);
+    const requestedUserId = req.user['userId'];
+    return this.userService.deleteUser(id, requestedUserId);
   }
 }

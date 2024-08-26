@@ -5,10 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from "../../prisma.service";
 import { ValidateUserException } from "./exception/validateUser.exception";
 import { ExistsUserException } from "./exception/existsUser.exception";
+import { AuthorizationService } from "../authorization/authorization.service";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService, private readonly authorizationService: AuthorizationService) {}
 
   async validateUser(data: CreateUserDto | UpdateUserDto) {
     if (data.username) {
@@ -36,22 +37,6 @@ export class UserService {
     }
   }
 
-  async getAllUsers() {
-    return this.prismaService.user.findMany();
-  }
-
-  async getUserById(id: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: { id }
-    });
-
-    if (user) {
-      return user;
-    } else{
-      throw new ExistsUserException('User not found');
-    }
-  }
-
   async getUserByUsername(username: string) {
     const user = await this.prismaService.user.findUnique({
       where: { username }
@@ -60,6 +45,23 @@ export class UserService {
     if (user) {
       return user;
     } else {
+      throw new ExistsUserException('User not found');
+    }
+  }
+
+  async getUserById(id: string, requestedUserId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id }
+    });
+
+    if (user) {
+      if (user.profile_visibility == 1) {
+        await this.authorizationService.checkUserPermission(user.id, requestedUserId);
+        return user;
+      }else if (user.profile_visibility == 0) {
+        return user;
+      }
+    } else{
       throw new ExistsUserException('User not found');
     }
   }
@@ -77,20 +79,35 @@ export class UserService {
 
   async createUser(data: CreateUserDto) {
     await this.validateUser(data);
-    return this.prismaService.user.create({ data });
+    const user = await this.prismaService.user.create({ data });
+
+    await this.prismaService.list.create({
+      data: {
+        name: 'My list',
+        userId: user.id,
+        type: 0,
+        list_visibility: 0
+      },
+    });
+
+    return user;
   }
 
-  async updateUser(id: string, data: UpdateUserDto) {
-    await this.getUserById(id);
+  async updateUser(id: string, requestedUserId: string, data: UpdateUserDto) {
+    const user = await this.getUserById(id, requestedUserId);
+    await this.authorizationService.checkUserPermission(user.id, requestedUserId);
     await this.validateUser(data);
+
     return this.prismaService.user.update({
       where: { id },
       data
     });
   }
 
-  async deleteUser(id: string) {
-    await this.getUserById(id);
+  async deleteUser(id: string, requestedUserId: string) {
+    const user = await this.getUserById(id, requestedUserId);
+    await this.authorizationService.checkUserPermission(user.id, requestedUserId);
+
     return this.prismaService.user.delete({
       where: { id }
     });
