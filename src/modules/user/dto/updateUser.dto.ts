@@ -1,5 +1,6 @@
+import { PartialType } from "@nestjs/mapped-types";
 import { CreateUserDto } from "./createUser.dto";
 
-export interface UpdateUserDto extends Partial<CreateUserDto> {
+export class UpdateUserDto extends PartialType(CreateUserDto) {
   profile_visibility?: number;
 }
