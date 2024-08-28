@@ -4,9 +4,10 @@ import { PrismaService } from "./prisma.service";
 import { AuthModule } from './modules/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { ListModule } from "./modules/list/list.module";
+import { GenreModule } from './modules/genre/genre.module';
 
 @Module({
-  imports: [UserModule, ListModule, AuthModule, PassportModule.register({ defaultStrategy: 'jwt'})],
+  imports: [UserModule, GenreModule, ListModule, AuthModule, PassportModule.register({ defaultStrategy: 'jwt'}), GenreModule],
   providers: [PrismaService],
 })
 export class AppModule {}
