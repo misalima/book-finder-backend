@@ -5,6 +5,7 @@ import { GenreController } from './genre.controller';
 
 @Module({
   controllers: [GenreController],
-  providers: [GenreService, PrismaService]
+  providers: [GenreService, PrismaService],
+  exports: [GenreService]
 })
 export class GenreModule {}

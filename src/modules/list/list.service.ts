@@ -49,19 +49,19 @@ export class ListService {
         }
     }
 
-    async createList(userId: string, data: CreateListDto) {
-        await this.validateList(data, userId);
+    async createList(requestedUserId: string, data: CreateListDto) {
+        await this.validateList(data, requestedUserId);
         return this.prismaService.list.create({
             data:{
-                userId,
+                userId: requestedUserId,
                 ...data
             } });
     }
 
-    async updateList(id: string, userId: string, data: UpdateListDto) {
-        const list = await this.getListById(id, userId);
-        await this.authorizationService.checkUserPermission(list.userId, userId)
-        await this.validateList(data, userId);
+    async updateList(id: string, requestedUserId: string, data: UpdateListDto) {
+        const list = await this.getListById(id, requestedUserId);
+        await this.authorizationService.checkUserPermission(list.userId, requestedUserId)
+        await this.validateList(data, requestedUserId);
 
         return this.prismaService.list.update({
             where: { id },
@@ -69,9 +69,9 @@ export class ListService {
         });
     }
 
-    async deleteList(userId: string, id : string) {
-        const list = await this.getListById(id, userId);
-        await this.authorizationService.checkUserPermission(list.userId, userId)
+    async deleteList(id : string, requestedUserId: string) {
+        const list = await this.getListById(id, requestedUserId);
+        await this.authorizationService.checkUserPermission(list.userId, requestedUserId)
 
         return this.prismaService.list.delete({
             where: { id },
