@@ -6,6 +6,7 @@ import { PrismaService } from "../../prisma.service";
 import { ValidateUserException } from "./exception/validateUser.exception";
 import { ExistsUserException } from "./exception/existsUser.exception";
 import { AuthorizationService } from "../authorization/authorization.service";
+import { omit } from 'lodash';
 
 @Injectable()
 export class UserService {
@@ -43,6 +44,18 @@ export class UserService {
     });
 
     if (user) {
+      return omit(user, ['password']);
+    } else {
+      throw new ExistsUserException('User not found');
+    }
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { email }
+    });
+
+    if (user) {
       return user;
     } else {
       throw new ExistsUserException('User not found');
@@ -57,9 +70,9 @@ export class UserService {
     if (user) {
       if (user.profile_visibility == 1) {
         await this.authorizationService.checkUserPermission(user.id, requestedUserId);
-        return user;
+        return omit(user, ['password']);
       }else if (user.profile_visibility == 0) {
-        return user;
+        return omit(user, ['password']);
       }
     } else{
       throw new ExistsUserException('User not found');
@@ -67,7 +80,7 @@ export class UserService {
   }
 
   async searchUsersByUsername(username: string) {
-    return this.prismaService.user.findMany({
+    const users = await this.prismaService.user.findMany({
       where: {
         username:{
           contains: username,
@@ -75,6 +88,8 @@ export class UserService {
         }
       }
     });
+
+    return users.map(user => omit(user, ['password']));
   }
 
   async createUser(data: CreateUserDto) {
@@ -90,7 +105,7 @@ export class UserService {
       },
     });
 
-    return user;
+    return omit(user, ['password']);
   }
 
   async updateUser(id: string, requestedUserId: string, data: UpdateUserDto) {
