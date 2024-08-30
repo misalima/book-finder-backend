@@ -25,7 +25,7 @@ export class BookService {
     }
   }
 
-  async getBookByTitle(title: string) {
+  async getBooksByTitle(title: string) {
     const books = await this.prismaService.book.findMany({
       where: {
         title: {
@@ -38,8 +38,10 @@ export class BookService {
     if (books.length === 0) {
       const externalBook = await this.externalBookService.findBookInExternalApi(title);
       if (externalBook) {
-        await this.createBook(externalBook);
-        return await this.getBookByTitle(externalBook.title);
+        externalBook.map(book => {
+          this.createBook(book)
+        })
+        return externalBook;
       }else{
         throw new ExistsBookException('Book not found');
       }

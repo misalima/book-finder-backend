@@ -19,6 +19,6 @@ export class BookController {
 
   @Get('search/:title')
   async getBookByTitle(@Param('title') title: string) {
-    return this.bookService.getBookByTitle(title);
+    return this.bookService.getBooksByTitle(title);
   }
 }
