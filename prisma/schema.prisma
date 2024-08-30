@@ -78,7 +78,7 @@ model Book {
   subtitle       String
   summary        String
   cover_image    String
-  published_date DateTime
+  published_date DateTime?
   avarage_rating Float            @default(0)
   authors        Author[]         @relation("AuthorBooks")
   genres         Genre[]          @relation("GenreBooks")
@@ -96,7 +96,6 @@ model Book {
 model Author {
   id        String   @id @default(uuid())
   name      String
-  surname   String
   books     Book[]   @relation("AuthorBooks")
   createdAt DateTime @default(now())
 }
