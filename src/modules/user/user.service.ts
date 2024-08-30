@@ -49,6 +49,7 @@ export class UserService {
       throw new ExistsUserException('User not found');
     }
   }
+
   async getUserByEmail(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email }
@@ -79,7 +80,7 @@ export class UserService {
   }
 
   async searchUsersByUsername(username: string) {
-    return this.prismaService.user.findMany({
+    const users = await this.prismaService.user.findMany({
       where: {
         username:{
           contains: username,
@@ -87,6 +88,8 @@ export class UserService {
         }
       }
     });
+
+    return users.map(user => omit(user, ['password']));
   }
 
   async createUser(data: CreateUserDto) {
