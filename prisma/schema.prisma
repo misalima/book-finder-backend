@@ -73,7 +73,7 @@ model Status {
 
 model Book {
   id             String           @id @default(uuid())
-  isbn           String
+  isbn           String           @unique
   title          String
   subtitle       String
   summary        String

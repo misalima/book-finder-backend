@@ -25,6 +25,12 @@ export class BookService {
     }
   }
 
+  async getBookByIsbn(isbn: string) {
+    return this.prismaService.book.findUnique({
+      where: { isbn }
+    });
+  }
+
   async getBooksByTitle(title: string) {
     const books = await this.prismaService.book.findMany({
       where: {
@@ -35,44 +41,48 @@ export class BookService {
       },
     });
 
-    if (books.length === 0) {
-      const externalBook = await this.externalBookService.findBookInExternalApi(title);
-      if (externalBook) {
-        externalBook.map(book => {
-          this.createBook(book)
-        })
-        return externalBook;
-      }else{
-        throw new ExistsBookException('Book not found');
+    const newBooks = [];
+    const externalBooks = await this.externalBookService.findBookInExternalApi(title);
+
+    if (externalBooks){
+      for (const book of externalBooks) {
+        const existingBook = await this.getBookByIsbn(book.isbn);
+
+        if (!existingBook) {
+          newBooks.push(book);
+          await this.createBook(book);
+        }
       }
     }else{
-      return books;
+      throw new ExistsBookException('Book not found');
     }
+
+    return [...books, ...newBooks];
   }
 
   async createBook(data: CreateBookDto) {
-    return this.prismaService.book.create({
-      data: {
-        isbn: data.isbn,
-        title: data.title,
-        subtitle: data.subtitle,
-        summary: data.summary,
-        cover_image: data.cover_image,
-        published_date: data.published_date,
-        page_count: data.page_count,
-        preview_link: data.preview_link,
-        info_link: data.info_link,
-        authors: {
-          connect: data.author.map((authorId: string) => ({ id: authorId }))
-        },
-        genres: {
-          connect: data.genre.map((genreId: string) => ({ id: genreId }))
-        },
-        publisher: {
-          connect: { id: data.publisher }
+      return this.prismaService.book.create({
+        data: {
+          isbn: data.isbn,
+          title: data.title,
+          subtitle: data.subtitle,
+          summary: data.summary,
+          cover_image: data.cover_image,
+          published_date: data.published_date,
+          page_count: data.page_count,
+          preview_link: data.preview_link,
+          info_link: data.info_link,
+          authors: {
+            connect: data.author.map((authorId: string) => ({ id: authorId }))
+          },
+          genres: {
+            connect: data.genre.map((genreId: string) => ({ id: genreId }))
+          },
+          publisher: {
+            connect: { id: data.publisher }
+          }
         }
-      }
-    });
+      });
   }
 
   async updateBook(id: string, data: UpdateBookDto) {
