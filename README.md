@@ -32,6 +32,42 @@
 $ npm install
 ```
 
+## Getting Started
+
+### Prerequisites
+
+Make sure you have the following tools installed on your machine:
+
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+
+### Environment Variables
+
+Before running the application, copy the `.env.example` file to a new `.env` file in the project root:
+
+```bash
+$ cp .env.example .env
+````
+
+### Running the Application with Docker
+
+To start the application and the PostgreSQL database using Docker Compose, run:
+```bash
+$ docker-compose up
+```
+
+### Prisma Commands
+
+After starting the Docker containers, you might need to run Prisma commands to set up the database schema and apply migrations. Here are the common commands:
+
+```bash
+# apply database migrations
+$ npx prisma migrate dev
+
+# generate Prisma client
+$ npx prisma generate
+```
+
 ## Running the app
 
 ```bash
