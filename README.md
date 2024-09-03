@@ -41,6 +41,9 @@ $ docker-compose up
 We are using Prisma ORM, so if it's the first time you're running the application, you will need to run Prisma commands to set up the database schema and apply migrations. Here are the common commands:
 
 ```bash
+# install Prisma
+$ npm install prisma@latest @prisma/client
+
 # apply database migrations
 $ npx prisma migrate dev
 
