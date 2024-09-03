@@ -79,7 +79,7 @@ model Book {
   summary        String
   cover_image    String
   published_date DateTime?
-  avarage_rating Float            @default(0)
+  average_rating Float            @default(0)
   authors        Author[]         @relation("AuthorBooks")
   genres         Genre[]          @relation("GenreBooks")
   booklists      BookListStatus[]
