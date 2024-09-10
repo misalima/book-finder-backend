@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma.service";
 import { CreateListDto } from "./dto/createList.dto";
 import { UpdateListDto } from "./dto/updateList.dto";
@@ -6,12 +6,16 @@ import { ValidateListException } from "./exception/validateList.exception";
 import { AuthorizationService } from "../authorization/authorization.service";
 import { UserService } from "../user/user.service";
 import { ExistsListException } from "./exception/existsList.exception";
+import { StatusService } from "../status/status.service";
 
 @Injectable()
 export class ListService {
     constructor(private readonly prismaService: PrismaService,
                 private readonly authorizationService: AuthorizationService,
-                private readonly userService: UserService) {}
+                @Inject(forwardRef(() => UserService))
+                private readonly userService: UserService,
+                @Inject(forwardRef(() => StatusService))
+                private readonly statusService: StatusService) {}
 
     async validateList(data: CreateListDto | UpdateListDto, userId: string) {
         if (data.name){
@@ -49,13 +53,30 @@ export class ListService {
         }
     }
 
-    async createList(requestedUserId: string, data: CreateListDto) {
+    async createList(requestedUserId: string, data: CreateListDto, isDefault: boolean = false) {
         await this.validateList(data, requestedUserId);
-        return this.prismaService.list.create({
+
+        const listType = isDefault ? 0 : 1;
+
+        const list = await this.prismaService.list.create({
             data:{
                 userId: requestedUserId,
+                type: listType,
                 ...data
             } });
+
+        if (list.type === 0){
+            const statuses = ["Reading", "To Read", "Read"];
+
+            for (const status of statuses) {
+                await this.statusService.createStatus({
+                      name: status,
+                      list: list.id },
+                  requestedUserId, true);
+            }
+        }
+
+        return list;
     }
 
     async updateList(id: string, requestedUserId: string, data: UpdateListDto) {

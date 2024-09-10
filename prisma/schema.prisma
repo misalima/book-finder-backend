@@ -61,13 +61,16 @@ model List {
   list_visibility Int              @default(0)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  status          Status[]
   bookslists      BookListStatus[]
 }
 
 model Status {
   id        String           @id @default(uuid())
+  listId    String
+  list      List             @relation(fields: [listId], references: [id])
   name      String
-  type      String
+  type      Int              @default(1)
   booklists BookListStatus[]
 }
 

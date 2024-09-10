@@ -39,6 +39,21 @@ export class BookService {
           mode: 'insensitive',
         },
       },
+      select: {
+        id: true,
+        isbn: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        cover_image: true,
+        published_date: true,
+        page_count: true,
+        preview_link: true,
+        info_link: true,
+        authors: true,
+        genres: true,
+        publisher: true
+      }
     });
 
     const newBooks = [];
