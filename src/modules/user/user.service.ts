@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { UpdateUserDto } from "./dto/updateUser.dto";
 import * as bcrypt from 'bcrypt';
@@ -7,10 +7,14 @@ import { ValidateUserException } from "./exception/validateUser.exception";
 import { ExistsUserException } from "./exception/existsUser.exception";
 import { AuthorizationService } from "../authorization/authorization.service";
 import { omit } from 'lodash';
+import { ListService } from "../list/list.service";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService, private readonly authorizationService: AuthorizationService) {}
+  constructor(private readonly prismaService: PrismaService,
+              private readonly authorizationService: AuthorizationService,
+              @Inject(forwardRef(() => ListService))
+              private readonly lisService: ListService) {}
 
   async validateUser(data: CreateUserDto | UpdateUserDto) {
     if (data.username) {
@@ -96,14 +100,10 @@ export class UserService {
     await this.validateUser(data);
     const user = await this.prismaService.user.create({ data });
 
-    await this.prismaService.list.create({
-      data: {
+    await this.lisService.createList(user.id, {
         name: 'My list',
-        userId: user.id,
-        type: 0,
         list_visibility: 0
-      },
-    });
+    }, true);
 
     return omit(user, ['password']);
   }

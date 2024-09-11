@@ -8,9 +8,19 @@ import { GenreModule } from './modules/genre/genre.module';
 import { AuthorModule } from "./modules/author/author.module";
 import { PublisherModule } from "./modules/publisher/publisher.module";
 import { BookModule } from "./modules/book/book.module";
+import { StatusModule } from "./modules/status/status.module";
 
 @Module({
-  imports: [UserModule, GenreModule, AuthorModule, GenreModule, PublisherModule, BookModule, ListModule, AuthModule,
+  imports: [
+    UserModule,
+    GenreModule,
+    AuthorModule,
+    GenreModule,
+    PublisherModule,
+    BookModule,
+    ListModule,
+    AuthModule,
+    StatusModule,
     PassportModule.register({ defaultStrategy: 'jwt'})],
   providers: [PrismaService],
 })

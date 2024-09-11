@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma.service";
 import { CreateBookDto } from "./dto/createBook.dto";
 import { ExternalBookService } from "./externalBook.service";
-import { UpdateBookDto } from "./dto/updateBook.dto";
 import { ExistsBookException } from "./exception/existsBook.exception";
+import { ListService } from "../list/list.service";
 
 @Injectable()
 export class BookService {
-  constructor(private readonly prismaService: PrismaService, private readonly externalBookService: ExternalBookService) {}
+  constructor(private readonly prismaService: PrismaService,
+              private readonly externalBookService: ExternalBookService,
+              @Inject(forwardRef(() => ListService))
+              private readonly  listService: ListService) {}
 
   async getAllBooks() {
     return this.prismaService.book.findMany();
@@ -39,6 +42,21 @@ export class BookService {
           mode: 'insensitive',
         },
       },
+      select: {
+        id: true,
+        isbn: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        cover_image: true,
+        published_date: true,
+        page_count: true,
+        preview_link: true,
+        info_link: true,
+        authors: true,
+        genres: true,
+        publisher: true
+      }
     });
 
     const newBooks = [];
@@ -58,6 +76,21 @@ export class BookService {
     }
 
     return [...books, ...newBooks];
+  }
+
+  async getBooksByListId(listId: string, requestedUserId: string) {
+    const list = await this.listService.getListById(listId, requestedUserId);
+    const books = await this.prismaService.bookListStatus.findMany({
+      where: {
+        listId: list.id
+      }
+    });
+
+    if (!books) {
+      throw new ExistsBookException('Books not found in this list');
+    }else{
+      return books;
+    }
   }
 
   async createBook(data: CreateBookDto) {
@@ -83,31 +116,5 @@ export class BookService {
           }
         }
       });
-  }
-
-  async updateBook(id: string, data: UpdateBookDto) {
-    return this.prismaService.book.update({
-      where: { id },
-      data: {
-        isbn: data.isbn,
-        title: data.title,
-        subtitle: data.subtitle,
-        summary: data.summary,
-        cover_image: data.cover_image,
-        published_date: data.published_date,
-        page_count: data.page_count,
-        preview_link: data.preview_link,
-        info_link: data.info_link,
-        authors: {
-          set: data.author.map((authorId: string) => ({ id: authorId }))
-        },
-        genres: {
-          set: data.genre.map((genreId: string) => ({ id: genreId }))
-        },
-        publisher: {
-          connect: { id: data.publisher }
-        }
-      }
-    });
   }
 }
