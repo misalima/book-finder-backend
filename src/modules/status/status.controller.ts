@@ -21,10 +21,10 @@ export class StatusController {
     return this.statusService.getStatusById(id);
   }
 
-  @Post()
-  async createStatus(@Body() data: CreateStatusDto, @Req() req: Request) {
+  @Post(':listId')
+  async createStatus(@Body() data: CreateStatusDto, @Param('listId') listId: string,@Req() req: Request) {
     const requestedUserId = req.user['userId'];
-    return this.statusService.createStatus(data, requestedUserId);
+    return this.statusService.createStatus(data, requestedUserId, listId);
   }
 
   @Put(':id')
