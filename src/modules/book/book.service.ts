@@ -18,7 +18,22 @@ export class BookService {
 
   async getBookById(id: string) {
     const book = await this.prismaService.book.findUnique({
-      where: { id }
+      where: { id },
+      select: {
+        id: true,
+        isbn: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        cover_image: true,
+        published_date: true,
+        page_count: true,
+        preview_link: true,
+        info_link: true,
+        authors: true,
+        genres: true,
+        publisher: true
+      }
     });
 
     if (!book) {
@@ -30,7 +45,22 @@ export class BookService {
 
   async getBookByIsbn(isbn: string) {
     return this.prismaService.book.findUnique({
-      where: { isbn }
+      where: { isbn },
+      select: {
+        id: true,
+        isbn: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        cover_image: true,
+        published_date: true,
+        page_count: true,
+        preview_link: true,
+        info_link: true,
+        authors: true,
+        genres: true,
+        publisher: true
+      }
     });
   }
 

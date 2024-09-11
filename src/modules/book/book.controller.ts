@@ -3,7 +3,6 @@ import { BookService } from "./book.service";
 import { JwtAuthGuard } from "../auth/auth.guard";
 import { Request } from "express";
 
-@UseGuards(JwtAuthGuard)
 @Controller('app/book')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
@@ -28,6 +27,7 @@ export class BookController {
     return this.bookService.getBookByIsbn(isbn);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('list/:listId')
   async getBooksByListId(@Param('listId') listId: string, @Req() req: Request) {
     const requestedUserId = req.user['userId'];
