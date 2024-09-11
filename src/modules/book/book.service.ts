@@ -89,7 +89,7 @@ export class BookService {
       }
     });
 
-    const newBooks = [];
+    
     const externalBooks = await this.externalBookService.findBookInExternalApi(title);
 
     if (externalBooks){
@@ -97,15 +97,16 @@ export class BookService {
         const existingBook = await this.getBookByIsbn(book.isbn);
 
         if (!existingBook) {
-          newBooks.push(book);
           await this.createBook(book);
+          const bookWithId = await this.getBookByIsbn(book.isbn);
+          books.push(bookWithId);
         }
       }
     }else{
       throw new ExistsBookException('Book not found');
     }
 
-    return [...books, ...newBooks];
+    return [...books];
   }
 
   async getBooksByListId(listId: string, requestedUserId: string) {
