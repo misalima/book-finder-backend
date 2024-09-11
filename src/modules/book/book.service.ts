@@ -2,7 +2,6 @@ import { forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/commo
 import { PrismaService } from "../../prisma.service";
 import { CreateBookDto } from "./dto/createBook.dto";
 import { ExternalBookService } from "./externalBook.service";
-import { UpdateBookDto } from "./dto/updateBook.dto";
 import { ExistsBookException } from "./exception/existsBook.exception";
 import { ListService } from "../list/list.service";
 
