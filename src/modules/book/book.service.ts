@@ -89,7 +89,6 @@ export class BookService {
       }
     });
 
-    
     const externalBooks = await this.externalBookService.findBookInExternalApi(title);
 
     if (externalBooks){
@@ -98,15 +97,14 @@ export class BookService {
 
         if (!existingBook) {
           await this.createBook(book);
-          const bookWithId = await this.getBookByIsbn(book.isbn);
-          books.push(bookWithId);
+          books.push(book);
         }
       }
     }else{
       throw new ExistsBookException('Book not found');
     }
 
-    return [...books];
+    return books;
   }
 
   async getBooksByListId(listId: string, requestedUserId: string) {
@@ -125,27 +123,42 @@ export class BookService {
   }
 
   async createBook(data: CreateBookDto) {
-      return this.prismaService.book.create({
-        data: {
-          isbn: data.isbn,
-          title: data.title,
-          subtitle: data.subtitle,
-          summary: data.summary,
-          cover_image: data.cover_image,
-          published_date: data.published_date,
-          page_count: data.page_count,
-          preview_link: data.preview_link,
-          info_link: data.info_link,
-          authors: {
-            connect: data.author.map((authorId: string) => ({ id: authorId }))
-          },
-          genres: {
-            connect: data.genre.map((genreId: string) => ({ id: genreId }))
-          },
-          publisher: {
-            connect: { id: data.publisher }
-          }
+    return this.prismaService.book.create({
+      data: {
+        isbn: data.isbn,
+        title: data.title,
+        subtitle: data.subtitle,
+        summary: data.summary,
+        cover_image: data.cover_image,
+        published_date: data.published_date,
+        page_count: data.page_count,
+        preview_link: data.preview_link,
+        info_link: data.info_link,
+        authors: {
+          connect: data.author.map((authorId: string) => ({ id: authorId }))
+        },
+        genres: {
+          connect: data.genre.map((genreId: string) => ({ id: genreId }))
+        },
+        publisher: {
+          connect: { id: data.publisher }
         }
-      });
+      },
+      select: {
+        id: true,
+        isbn: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        cover_image: true,
+        published_date: true,
+        page_count: true,
+        preview_link: true,
+        info_link: true,
+        authors: true,
+        genres: true,
+        publisher: true
+      }
+    });
   }
 }
