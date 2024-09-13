@@ -96,8 +96,8 @@ export class BookService {
         const existingBook = await this.getBookByIsbn(book.isbn);
 
         if (!existingBook) {
-          await this.createBook(book);
-          books.push(book);
+          const newBook = await this.createBook(book);
+          books.push(newBook);
         }
       }
     }else{
