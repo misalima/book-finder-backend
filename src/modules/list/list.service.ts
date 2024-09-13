@@ -7,9 +7,6 @@ import { AuthorizationService } from "../authorization/authorization.service";
 import { UserService } from "../user/user.service";
 import { ExistsListException } from "./exception/existsList.exception";
 import { StatusService } from "../status/status.service";
-import { BookService } from "../book/book.service";
-import { ExistsStatusException } from "../status/exception/existsStatus.exception";
-import { AddBookToListDto } from "./dto/addBooktoList.dto";
 
 @Injectable()
 export class ListService {
@@ -18,9 +15,7 @@ export class ListService {
                 @Inject(forwardRef(() => UserService))
                 private readonly userService: UserService,
                 @Inject(forwardRef(() => StatusService))
-                private readonly statusService: StatusService,
-                @Inject(forwardRef(() => BookService))
-                private readonly bookService: BookService) {}
+                private readonly statusService: StatusService) {}
 
     async validateList(data: CreateListDto | UpdateListDto, userId: string) {
         if (data.name){
@@ -100,39 +95,6 @@ export class ListService {
 
         return this.prismaService.list.delete({
             where: { id },
-        });
-    }
-
-    async addBookToList(listId: string, requestedUserId: string, data: AddBookToListDto) {
-        await this.bookService.getBookById(data.bookId);
-        const list = await this.getListById(listId, requestedUserId);
-        await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
-        const statuses = await this.statusService.getStatusByList(listId, requestedUserId);
-        const statusExists = statuses.some(status => status.id === data.statusId);
-
-        if (!statusExists) {
-            throw new ExistsStatusException('Status does not exist in this list');
-        }else{
-            return this.prismaService.bookListStatus.create({
-                data:{
-                    bookId: data.bookId,
-                    listId: listId,
-                    statusId: data.statusId
-                }
-            });
-        }
-    }
-
-    async removeBookFromList(listId: string, requestedUserId: string, bookId: string) {
-        const list = await this.getListById(listId, requestedUserId);
-        await this.bookService.getBooksByListId(list.id, requestedUserId);
-        await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
-
-        return this.prismaService.bookListStatus.deleteMany({
-            where: {
-                listId,
-                bookId
-            }
         });
     }
 }

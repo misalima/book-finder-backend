@@ -5,12 +5,9 @@ import { ListService } from "./list.service";
 import { UserModule } from "../user/user.module";
 import { AuthorizationModule } from "../authorization/authorization.module";
 import { StatusModule } from "../status/status.module";
-import { BookModule } from "../book/book.module";
 
 @Module({
-    imports: [AuthorizationModule, forwardRef(() => UserModule),
-        forwardRef(() => StatusModule),
-        forwardRef(() => BookModule)],
+    imports: [AuthorizationModule, forwardRef(() => UserModule), forwardRef(() => StatusModule)],
     controllers: [ListController],
     providers: [PrismaService, ListService],
     exports: [ListService],
