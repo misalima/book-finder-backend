@@ -55,9 +55,7 @@ export class ListService {
 
     async createList(requestedUserId: string, data: CreateListDto, isDefault: boolean = false) {
         await this.validateList(data, requestedUserId);
-
         const listType = isDefault ? 0 : 1;
-
         const list = await this.prismaService.list.create({
             data:{
                 userId: requestedUserId,
@@ -66,13 +64,15 @@ export class ListService {
             } });
 
         if (list.type === 0){
-            const statuses = ["Reading", "To Read", "Read"];
+            const statuses = ["Reading", "To Read", "Read", "Default"];
 
             for (const status of statuses) {
-                await this.statusService.createStatus( {
-                      name: status},
+                await this.statusService.createStatus( { name: status },
                   requestedUserId, list.id, true);
             }
+        }else{
+            await this.statusService.createStatus( { name: "Default" },
+              requestedUserId, list.id, true);
         }
 
         return list;

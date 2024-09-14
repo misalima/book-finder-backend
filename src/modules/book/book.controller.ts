@@ -37,9 +37,9 @@ export class BookController {
 
   @UseGuards(JwtAuthGuard)
   @Post(":bookId/:listId")
-  async addBookToList(@Param('bookId') bookId: string, @Param('listId') listId: string, @Body() data: AddBookToListDto, @Req() req: Request) {
+  async addBookToList(@Param('bookId') bookId: string, @Param('listId') listId: string, @Req() req: Request) {
     const requestedUserId = req.user['userId'];
-    return this.bookService.addBookToList(bookId, listId, requestedUserId, data);
+    return this.bookService.addBookToList(bookId, listId, requestedUserId);
   }
 
   @UseGuards(JwtAuthGuard)

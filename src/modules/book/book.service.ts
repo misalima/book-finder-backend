@@ -167,12 +167,12 @@ export class BookService {
     });
   }
 
-  async addBookToList(bookId: string, listId: string, requestedUserId: string, data: AddBookToListDto) {
+  async addBookToList(bookId: string, listId: string, requestedUserId: string) {
     await this.getBookById(bookId);
     const list = await this.listService.getListById(listId, requestedUserId);
     await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
     const statuses = await this.statusService.getStatusByList(list.id, requestedUserId);
-    const statusExists = statuses.some(status => status.id === data.statusId);
+    const statusExists = statuses.find(status => status.name === "Default");
 
     if (!statusExists) {
       throw new ExistsStatusException('Status does not exist in this list');
@@ -181,7 +181,7 @@ export class BookService {
         data:{
           bookId: bookId,
           listId: listId,
-          statusId: data.statusId
+          statusId: statusExists.id,
         }
       });
     }

@@ -36,16 +36,22 @@ export class StatusService{
   async createStatus(data: CreateStatusDto, requestedUserId: string, listId: string, isDefault: boolean = false) {
     const list = await this.listService.getListById(listId, requestedUserId);
     await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
+    const statuses = await this.getStatusByList(listId, requestedUserId);
+    const statusExists = statuses.find(status => status.name === data.name);
 
-    return this.prismaService.status.create({
-      data: {
-        name: data.name,
-        list: {
-          connect: { id: listId }
-        },
-        type: isDefault? 0 : 1,
-      }
-    });
+    if (statusExists) {
+      throw new ExistsStatusException('Status already exists in this list');
+    }else{
+      return this.prismaService.status.create({
+        data: {
+          name: data.name,
+          list: {
+            connect: { id: listId }
+          },
+          type: isDefault? 0 : 1,
+        }
+      });
+    }
   }
 
   async updateStatus(id: string, data: UpdateStatusDto, requestedUserId: string) {
