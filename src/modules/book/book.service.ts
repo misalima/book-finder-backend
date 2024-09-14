@@ -4,7 +4,6 @@ import { CreateBookDto } from "./dto/createBook.dto";
 import { ExternalBookService } from "./externalBook.service";
 import { ExistsBookException } from "./exception/existsBook.exception";
 import { ListService } from "../list/list.service";
-import { AddBookToListDto } from "./dto/addBooktoList.dto";
 import { ExistsStatusException } from "../status/exception/existsStatus.exception";
 import { AuthorizationService } from "../authorization/authorization.service";
 import { StatusService } from "../status/status.service";

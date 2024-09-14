@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { BookService } from "./book.service";
 import { JwtAuthGuard } from "../auth/auth.guard";
 import { Request } from "express";
-import { AddBookToListDto } from "./dto/addBooktoList.dto";
 
 @Controller('app/book')
 export class BookController {
