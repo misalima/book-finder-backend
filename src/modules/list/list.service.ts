@@ -81,7 +81,7 @@ export class ListService {
     async updateList(id: string, requestedUserId: string, data: UpdateListDto) {
         const list = await this.getListById(id, requestedUserId);
         await this.authorizationService.checkUserPermission(list.userId, requestedUserId)
-        await this.validateList(data, requestedUserId);
+        await this.validateList(data, list.userId);
 
         return this.prismaService.list.update({
             where: { id },

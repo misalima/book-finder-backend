@@ -45,6 +45,6 @@ export class BookController {
   @Delete(":bookId/:listId")
   async removeBookFromList(@Param('listId') listId: string, @Param('bookId') bookId: string, @Req() req: Request) {
     const requestedUserId = req.user['userId'];
-    return this.bookService.removeBookFromList(listId, requestedUserId, bookId);
+    return this.bookService.removeBookFromList(listId, bookId, requestedUserId);
   }
 }

@@ -112,18 +112,13 @@ export class BookService {
   }
 
   async getBooksByList(listId: string, requestedUserId: string) {
-    const list = await this.listService.getListById(listId, requestedUserId);
-    const books = await this.prismaService.bookListStatus.findMany({
+    await this.listService.getListById(listId, requestedUserId);
+
+    return this.prismaService.bookListStatus.findMany({
       where: {
-        listId: list.id
+        listId: listId
       }
     });
-
-    if (!books) {
-      throw new ExistsBookException('Books not found in this list');
-    }else{
-      return books;
-    }
   }
 
   async createBook(data: CreateBookDto) {
@@ -170,7 +165,14 @@ export class BookService {
     await this.getBookById(bookId);
     const list = await this.listService.getListById(listId, requestedUserId);
     await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
-    const statuses = await this.statusService.getStatusByList(list.id, requestedUserId);
+    const books = await this.getBooksByList(listId, requestedUserId);
+    const bookExists = books.find(book => book.bookId === bookId);
+
+    if (bookExists) {
+      throw new ExistsBookException('Book already exists in this list');
+    }
+
+    const statuses = await this.statusService.getStatusByList(listId, requestedUserId);
     const statusExists = statuses.find(status => status.name === "Default");
 
     if (!statusExists) {
@@ -186,9 +188,15 @@ export class BookService {
     }
   }
 
-  async removeBookFromList(listId: string, requestedUserId: string, bookId: string) {
+  async removeBookFromList(listId: string, bookId: string, requestedUserId: string) {
     const list = await this.listService.getListById(listId, requestedUserId);
-    await this.getBooksByList(list.id, requestedUserId);
+    const books = await this.getBooksByList(listId, requestedUserId);
+    const bookExists = books.find(book => book.bookId === bookId);
+
+    if (!bookExists) {
+      throw new ExistsBookException('Book does not exist in this list');
+    }
+
     await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
 
     return this.prismaService.bookListStatus.deleteMany({
