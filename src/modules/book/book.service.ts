@@ -1,16 +1,20 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma.service";
 import { CreateBookDto } from "./dto/createBook.dto";
 import { ExternalBookService } from "./externalBook.service";
 import { ExistsBookException } from "./exception/existsBook.exception";
 import { ListService } from "../list/list.service";
+import { ExistsStatusException } from "../status/exception/existsStatus.exception";
+import { AuthorizationService } from "../authorization/authorization.service";
+import { StatusService } from "../status/status.service";
 
 @Injectable()
 export class BookService {
   constructor(private readonly prismaService: PrismaService,
               private readonly externalBookService: ExternalBookService,
-              @Inject(forwardRef(() => ListService))
-              private readonly  listService: ListService) {}
+              private readonly  listService: ListService,
+              private readonly authorizationService: AuthorizationService,
+              private readonly statusService: StatusService) {}
 
   async getAllBooks() {
     return this.prismaService.book.findMany();
@@ -107,19 +111,14 @@ export class BookService {
     return books;
   }
 
-  async getBooksByListId(listId: string, requestedUserId: string) {
-    const list = await this.listService.getListById(listId, requestedUserId);
-    const books = await this.prismaService.bookListStatus.findMany({
+  async getBooksByList(listId: string, requestedUserId: string) {
+    await this.listService.getListById(listId, requestedUserId);
+
+    return this.prismaService.bookListStatus.findMany({
       where: {
-        listId: list.id
+        listId: listId
       }
     });
-
-    if (!books) {
-      throw new ExistsBookException('Books not found in this list');
-    }else{
-      return books;
-    }
   }
 
   async createBook(data: CreateBookDto) {
@@ -158,6 +157,52 @@ export class BookService {
         authors: true,
         genres: true,
         publisher: true
+      }
+    });
+  }
+
+  async addBookToList(bookId: string, listId: string, requestedUserId: string) {
+    await this.getBookById(bookId);
+    const list = await this.listService.getListById(listId, requestedUserId);
+    await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
+    const books = await this.getBooksByList(listId, requestedUserId);
+    const bookExists = books.find(book => book.bookId === bookId);
+
+    if (bookExists) {
+      throw new ExistsBookException('Book already exists in this list');
+    }
+
+    const statuses = await this.statusService.getStatusByList(listId, requestedUserId);
+    const statusExists = statuses.find(status => status.name === "Default");
+
+    if (!statusExists) {
+      throw new ExistsStatusException('Status does not exist in this list');
+    }else{
+      return this.prismaService.bookListStatus.create({
+        data:{
+          bookId: bookId,
+          listId: listId,
+          statusId: statusExists.id,
+        }
+      });
+    }
+  }
+
+  async removeBookFromList(listId: string, bookId: string, requestedUserId: string) {
+    const list = await this.listService.getListById(listId, requestedUserId);
+    const books = await this.getBooksByList(listId, requestedUserId);
+    const bookExists = books.find(book => book.bookId === bookId);
+
+    if (!bookExists) {
+      throw new ExistsBookException('Book does not exist in this list');
+    }
+
+    await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
+
+    return this.prismaService.bookListStatus.deleteMany({
+      where: {
+        listId,
+        bookId
       }
     });
   }

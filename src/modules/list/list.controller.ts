@@ -4,7 +4,6 @@ import { JwtAuthGuard } from "../auth/auth.guard";
 import { Request } from "express";
 import { UpdateListDto } from "./dto/updateList.dto";
 import { CreateListDto } from "./dto/createList.dto";
-import { AddBookToListDto } from "./dto/addBooktoList.dto";
 
 @UseGuards(JwtAuthGuard)
 @Controller("app/list")
@@ -39,17 +38,5 @@ export class ListController{
   async deleteList(@Param('id') id: string, @Req() req: Request) {
     const requestedUserId = req.user['userId'];
     return this.listService.deleteList(id, requestedUserId);
-  }
-
-  @Post("addBook/:listId")
-  async addBookToList(@Param('listId') listId: string, @Body() data: AddBookToListDto, @Req() req: Request) {
-    const requestedUserId = req.user['userId'];
-    return this.listService.addBookToList(listId, requestedUserId, data);
-  }
-
-  @Delete("removeBook/:listId/:bookId")
-  async removeBookFromList(@Param('listId') listId: string, @Param('bookId') bookId: string, @Req() req: Request) {
-    const requestedUserId = req.user['userId'];
-    return this.listService.removeBookFromList(listId, requestedUserId, bookId);
   }
 }
