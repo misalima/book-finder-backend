@@ -8,13 +8,15 @@ import { ExistsUserException } from "./exception/existsUser.exception";
 import { AuthorizationService } from "../authorization/authorization.service";
 import { omit } from 'lodash';
 import { ListService } from "../list/list.service";
+import { FollowUserException } from "./exception/followUser.exception";
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService,
               private readonly authorizationService: AuthorizationService,
               @Inject(forwardRef(() => ListService))
-              private readonly lisService: ListService) {}
+              private readonly lisService: ListService) {
+  }
 
   async validateUser(data: CreateUserDto | UpdateUserDto) {
     if (data.username) {
@@ -42,18 +44,6 @@ export class UserService {
     }
   }
 
-  async getUserByUsername(username: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: { username }
-    });
-
-    if (user) {
-      return omit(user, ['password']);
-    } else {
-      throw new ExistsUserException('User not found');
-    }
-  }
-
   async getUserByEmail(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email }
@@ -71,29 +61,35 @@ export class UserService {
       where: { id }
     });
 
-    if (user) {
-      if (user.profile_visibility == 1) {
-        await this.authorizationService.checkUserPermission(user.id, requestedUserId);
-        return omit(user, ['password']);
-      }else if (user.profile_visibility == 0) {
-        return omit(user, ['password']);
-      }
-    } else{
+    if (!user) {
       throw new ExistsUserException('User not found');
+    }
+
+    if (user.id === requestedUserId){
+      return user;
+    }else{
+      return omit(user, ['password','email']);
     }
   }
 
   async searchUsersByUsername(username: string) {
     const users = await this.prismaService.user.findMany({
       where: {
-        username:{
+        username: {
           contains: username,
           mode: 'insensitive'
         }
       }
     });
 
-    return users.map(user => omit(user, ['password']));
+    const result = [];
+
+    if (users.length > 0) {
+      for (const user of users) {
+        result.push(omit(user, ['password','email']));}
+    }
+
+    return result;
   }
 
   async createUser(data: CreateUserDto) {
@@ -101,8 +97,8 @@ export class UserService {
     const user = await this.prismaService.user.create({ data });
 
     await this.lisService.createList(user.id, {
-        name: 'My list',
-        list_visibility: 0
+      name: 'My list',
+      list_visibility: 0
     }, true);
 
     return omit(user, ['password']);
@@ -114,7 +110,7 @@ export class UserService {
     await this.validateUser(data);
 
     return this.prismaService.user.update({
-      where: { id },
+      where: { id: user.id },
       data
     });
   }
@@ -124,7 +120,114 @@ export class UserService {
     await this.authorizationService.checkUserPermission(user.id, requestedUserId);
 
     return this.prismaService.user.delete({
-      where: { id }
+      where: { id: user.id }
+    });
+  }
+
+  async getFollowers(userId: string, requestedUserId: string) {
+    const user = await this.getUserById(userId, requestedUserId);
+    const isAuthorized = await this.authorizationService.checkUserFollowPermission(user.id, requestedUserId);
+
+    if (!isAuthorized){
+      throw new FollowUserException('You are not authorized to view this user\'s followers');
+    }
+
+    return this.prismaService.users_Users.findMany({
+      where: { followedId: user.id },
+      select: {
+        follower: {
+          select: {
+            id: true,
+            username: true
+          }
+        }
+      }
+    });
+  }
+
+  async getFollowing(userId: string, requestedUserId: string) {
+    const user = await this.getUserById(userId, requestedUserId);
+    const isAuthorized = await this.authorizationService.checkUserFollowPermission(user.id, requestedUserId);
+
+    if (!isAuthorized){
+      throw new FollowUserException('You are not authorized to view this user\'s following');
+    }
+    return this.prismaService.users_Users.findMany({
+      where: { followerId: user.id },
+      select: {
+        followed_user: {
+          select: {
+            id: true,
+            username: true
+          }
+        }
+      }
+    });
+  }
+
+  async followUser(userId: string, requestedUserId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user){
+      throw new ExistsUserException('User not found');
+    }else if (user.id === requestedUserId){
+      throw new FollowUserException('You cannot follow yourself');
+    }
+
+    const isFollowing = await this.prismaService.users_Users.findUnique({
+      where: {
+        followerId_followedId: {
+          followerId: requestedUserId,
+          followedId: user.id
+        }
+      }
+    });
+
+    if (isFollowing){
+      throw new FollowUserException('You are already following this user');
+    }
+
+    return this.prismaService.users_Users.create({
+      data: {
+        followerId: requestedUserId,
+        followedId: user.id
+      }
+    });
+  }
+
+  async unfollowUser(userId: string, requestedUserId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user){
+      throw new ExistsUserException('User not found');
+    }else if (user.id === requestedUserId){
+      throw new FollowUserException('You cannot unfollow yourself');
+    }
+
+    const isFollowing = await this.prismaService.users_Users.findUnique({
+      where: {
+        followerId_followedId: {
+          followerId: requestedUserId,
+          followedId: user.id
+        }
+      }
+    });
+
+    if (!isFollowing){
+      throw new FollowUserException('You are not following this user');
+    }
+
+    return this.prismaService.users_Users.delete({
+      where: {
+        followerId_followedId: {
+          followerId: requestedUserId,
+          followedId: user.id
+        }
+      }
     });
   }
 }
