@@ -16,7 +16,7 @@ export class StatusController {
     return this.statusService.getStatusByList(listId, requestedUserId);
   }
 
-  @Get('status/:id')
+  @Get(':id')
   getStatusById(@Param('id') id: string) {
     return this.statusService.getStatusById(id);
   }
