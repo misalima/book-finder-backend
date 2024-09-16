@@ -18,7 +18,7 @@ export class UserController{
 
   @UseGuards(JwtAuthGuard)
   @Get("search/:username")
-  async searchUsersByUsername(@Param('username') username: string) {
+  async searchUsersByUsername(@Param('username') username: string){
     return this.userService.searchUsersByUsername(username);
   }
 
@@ -39,5 +39,33 @@ export class UserController{
   async deleteUser(@Param('id') id: string, @Req() req: Request){
     const requestedUserId = req.user['userId'];
     return this.userService.deleteUser(id, requestedUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("followers/:id")
+  async getFollowers(@Param('id') id: string, @Req() req: Request){
+    const requestedUserId = req.user['userId'];
+    return this.userService.getFollowers(id, requestedUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("following/:id")
+  async getFollowing(@Param('id') id: string, @Req() req: Request){
+    const requestedUserId = req.user['userId'];
+    return this.userService.getFollowing(id, requestedUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("follow/:id")
+  async followUser(@Param('id') id: string, @Req() req: Request){
+    const requestedUserId = req.user['userId'];
+    return this.userService.followUser(id, requestedUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete("unfollow/:id")
+  async unfollowUser(@Param('id') id: string, @Req() req: Request){
+    const requestedUserId = req.user['userId'];
+    return this.userService.unfollowUser(id, requestedUserId);
   }
 }

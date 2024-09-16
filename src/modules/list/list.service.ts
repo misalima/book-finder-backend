@@ -30,9 +30,22 @@ export class ListService {
     }
 
     async getListByUserId(userId: string, requestedUserId: string) {
-        await this.userService.getUserById(userId, requestedUserId);
+        const user = await this.userService.getUserById(userId, requestedUserId);
+
+        if (user.id === requestedUserId) {
+            return this.prismaService.list.findMany({
+                where: { userId: user.id },
+            });
+        }
+
+        const isAuthorized = await this.authorizationService.checkUserFollowPermission(user.id, requestedUserId);
+
+        if (!isAuthorized) {
+            return [];
+        }
+
         return this.prismaService.list.findMany({
-            where: { userId },
+            where: { userId: user.id, list_visibility: 0 },
         });
     }
 
