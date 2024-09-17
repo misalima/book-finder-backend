@@ -18,7 +18,7 @@ export class UserService {
               private readonly lisService: ListService) {
   }
 
-  async validateUser(data: CreateUserDto | UpdateUserDto) {
+  private async validateUser(data: CreateUserDto | UpdateUserDto) {
     if (data.username) {
       const existingUsername = await this.prismaService.user.findUnique({
         where: { username: data.username }
@@ -38,9 +38,23 @@ export class UserService {
         throw new ValidateUserException('Email already exists');
       }
     }
+  }
 
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
+  private async verifyPasswordUpdate(currentPassword: string, userPassword: string, newPassword: string) {
+    if (!currentPassword) {
+      throw new ValidateUserException('Current password is required');
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, userPassword);
+
+    if (!isPasswordValid) {
+      throw new ValidateUserException('Current password is incorrect');
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, userPassword);
+
+    if (isSamePassword) {
+      throw new ValidateUserException('New password must be different from the current password');
     }
   }
 
@@ -94,6 +108,7 @@ export class UserService {
 
   async createUser(data: CreateUserDto) {
     await this.validateUser(data);
+    data.password = await bcrypt.hash(data.password, 10);
     const user = await this.prismaService.user.create({ data });
 
     await this.lisService.createList(user.id, {
@@ -105,14 +120,31 @@ export class UserService {
   }
 
   async updateUser(id: string, requestedUserId: string, data: UpdateUserDto) {
-    const user = await this.getUserById(id, requestedUserId);
+    const user = await this.prismaService.user.findUnique({
+      where: { id }
+    });
+
+    if (!user) {
+      throw new ExistsUserException('User not found');
+    }
+
     await this.authorizationService.checkUserPermission(user.id, requestedUserId);
     await this.validateUser(data);
 
-    return this.prismaService.user.update({
+    if (data.newPassword) {
+      await this.verifyPasswordUpdate(data.password, user.password, data.newPassword);
+      data.password = await bcrypt.hash(data.newPassword, 10);
+      delete data.newPassword;
+    }else if (data.password && !data.newPassword) {
+      throw new ValidateUserException('New password must be provided to update the password');
+    }
+
+    const updatedUser = await this.prismaService.user.update({
       where: { id: user.id },
       data
     });
+
+    return omit(updatedUser, ['password']);
   }
 
   async deleteUser(id: string, requestedUserId: string) {
