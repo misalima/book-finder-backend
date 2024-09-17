@@ -111,12 +111,26 @@ export class BookService {
     return books;
   }
 
-  async getBooksByList(listId: string, requestedUserId: string) {
-    await this.listService.getListById(listId, requestedUserId);
+  async getBooksWithStatusByList(listId: string, requestedUserId: string) {
+    const list = await this.listService.getListById(listId, requestedUserId);
 
     return this.prismaService.bookListStatus.findMany({
       where: {
-        listId: listId
+        listId: list.id
+      },
+      select: {
+        book: {
+          select: {
+            id: true,
+            title: true,
+          }
+        },
+        status:{
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
     });
   }
@@ -165,14 +179,14 @@ export class BookService {
     await this.getBookById(bookId);
     const list = await this.listService.getListById(listId, requestedUserId);
     await this.authorizationService.checkUserPermission(list.userId, requestedUserId);
-    const books = await this.getBooksByList(listId, requestedUserId);
-    const bookExists = books.find(book => book.bookId === bookId);
+    const books = await this.getBooksWithStatusByList(list.id, requestedUserId);
+    const bookExists = books.find(book => book.book.id === bookId);
 
     if (bookExists) {
       throw new ExistsBookException('Book already exists in this list');
     }
 
-    const statuses = await this.statusService.getStatusByList(listId, requestedUserId);
+    const statuses = await this.statusService.getStatusByList(list.id, requestedUserId);
     const statusExists = statuses.find(status => status.name === "Default");
 
     if (!statusExists) {
@@ -190,8 +204,8 @@ export class BookService {
 
   async removeBookFromList(listId: string, bookId: string, requestedUserId: string) {
     const list = await this.listService.getListById(listId, requestedUserId);
-    const books = await this.getBooksByList(listId, requestedUserId);
-    const bookExists = books.find(book => book.bookId === bookId);
+    const books = await this.getBooksWithStatusByList(listId, requestedUserId);
+    const bookExists = books.find(book => book.book.id === bookId);
 
     if (!bookExists) {
       throw new ExistsBookException('Book does not exist in this list');
