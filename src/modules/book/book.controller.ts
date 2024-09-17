@@ -31,7 +31,7 @@ export class BookController {
   @Get('list/:listId')
   async getBooksByList(@Param('listId') listId: string, @Req() req: Request) {
     const requestedUserId = req.user['userId'];
-    return this.bookService.getBooksByList(listId, requestedUserId);
+    return this.bookService.getBooksWithStatusByList(listId, requestedUserId);
   }
 
   @UseGuards(JwtAuthGuard)
