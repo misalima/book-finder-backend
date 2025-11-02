@@ -1,18 +1,43 @@
 version: '3.9'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: bookfinder_postgres
-    restart: always
+  app:
+    build: .
+    container_name: bookfinder_app
+    ports:
+      - '3333:3333'
     environment:
-      POSTGRES_USER: ${PG_USER}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${PG_PORT}/${POSTGRES_DB}
+    networks:
+      - bookfinder_network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  
+  db:
+    image: postgres:15-alpine
+    container_name: bookfinder_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "${PG_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bookfinder_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  bookfinder_network:
+    driver: bridge
 
 volumes:
   postgres_data:
